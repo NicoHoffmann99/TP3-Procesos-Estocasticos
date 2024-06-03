@@ -35,3 +35,35 @@ def welch_metod_PSD(x,per_margin,wind,M):
         x_i=x[i*K : (i*K + M)]*v
         S_w+=Periodograma(x_i,N)/V
     return S_w/L
+
+#Recibe señal, retorna señal mapeada 1 bit a 1 simbolo
+def mapeo(x):
+    y=np.zeros(len(x))
+    for i in range(len(x)):
+        y[i]=x[i]
+        if x[i]==0:
+            y[i]=-1
+    return x
+
+#Recibe señal 
+def canal_discreto(x,h):
+    g=np.convolve(x,h)
+    y=g + np.random.normal(0,0.002,len(g))
+    return y
+
+def ej_1():
+    #a)
+    b=np.random.binomial(1,0.5,1000)
+    x=mapeo(b)
+
+    h=[0.5,1,0.2,0.1,0.05,0.01]
+    y=canal_discreto(x,h)
+    N_1=np.linspace(0,1000,len(x))
+    N_2=np.linspace(0,1000,len(y))
+    plt.plot(N_1,x)
+    plt.show()
+    plt.plot(N_2,y)
+    plt.show()
+
+
+ej_1()
