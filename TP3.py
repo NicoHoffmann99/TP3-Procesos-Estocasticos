@@ -59,6 +59,34 @@ def canal_discreto(x,h):
     g=np.convolve(x,h,'same')
     y=g + np.random.normal(0,0.002,len(g))
     return y
+'''
+#                                                  d(n)
+#                                                   |
+#             |-------------|                       |
+#             |             |                       +
+#   y(n) ---> |      w      | ----> y_moño(n) -->  -   ---> e(n)
+#             |             |
+#             |-------------|
+'''
+'''
+def algoritmo_LMS(y,d,mu,M):
+    #Semilla w del algoritmo
+    w=np.zeros(M)
+    e=np.zeros(len(d))
+    y_moño=np.zeros(len(d))
+
+    for i in range(M, len(y)):
+        #Extraigo porción de y para calcular y_moño
+        y_porción=y[i:(i-M+1)]
+        y_moño[i]=np.dot(w,y_por)
+
+        e[i] = d[i] -y_moño[i]
+
+        w = w + mu*e[i]*y_porción
+    
+    return w, e, y_moño
+'''
+    
 
 def ej_1():
     #a)
@@ -88,5 +116,6 @@ def ej_1():
     plt.plot(N,S_x)
     plt.plot(N,S_y)
     plt.show()
+
 
 ej_1()
