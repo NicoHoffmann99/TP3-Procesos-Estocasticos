@@ -3,6 +3,14 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.fft import fft, ifft
 
+
+#Recibe señal(arreglo) => devuelve potencia
+def potencia(x):
+    p=0
+    for i in range(len(x)):
+        p+=np.power(np.abs(x[i]),2)
+    return p/len(x)
+
 #Recibe señal(arreglo) => Devuelve función de autocorrelación
 def auto_corr(y):
     N=len(y)
@@ -22,6 +30,7 @@ def Periodograma(y,N_fft):
     #psd=psd/N
     return psd/N
 
+#Recibe señal(arreglo), porcentaje de solapamiento(pwe_margin), tipo de ventana(wind), tamaño de ventana M
 def welch_metod_PSD(x,per_margin,wind,M):
     N=len(x)
     K=int(M*(1-per_margin/100)) #Desplazamiento
@@ -42,12 +51,12 @@ def mapeo(x):
     for i in range(len(x)):
         y[i]=x[i]
         if x[i]==0:
-            y[i]=-1
-    return x
+            y[i]= -1
+    return y
 
 #Recibe señal 
 def canal_discreto(x,h):
-    g=np.convolve(x,h)
+    g=np.convolve(x,h,'same')
     y=g + np.random.normal(0,0.002,len(g))
     return y
 
@@ -55,15 +64,29 @@ def ej_1():
     #a)
     b=np.random.binomial(1,0.5,1000)
     x=mapeo(b)
+    plt.stem(x)
+    plt.xlim(0,100)
+    plt.show()
 
+    #b)
     h=[0.5,1,0.2,0.1,0.05,0.01]
     y=canal_discreto(x,h)
-    N_1=np.linspace(0,1000,len(x))
-    N_2=np.linspace(0,1000,len(y))
-    plt.plot(N_1,x)
-    plt.show()
-    plt.plot(N_2,y)
+    N=np.linspace(0,1000,len(x))
+    plt.stem(y)
+    plt.xlim(0,100)
     plt.show()
 
+    #c)
+    R_x=auto_corr(x)
+    R_y=auto_corr(y)
+    plt.plot(N,R_x)
+    plt.plot(N,R_y)
+    plt.show()
+
+    S_x=welch_metod_PSD(x,50,'hamming',80)
+    S_y=welch_metod_PSD(y,50,'hamming',80)
+    plt.plot(N,S_x)
+    plt.plot(N,S_y)
+    plt.show()
 
 ej_1()
