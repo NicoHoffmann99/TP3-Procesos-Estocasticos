@@ -47,11 +47,7 @@ def welch_metod_PSD(x,per_margin,wind,M):
 
 #Recibe señal, retorna señal mapeada 1 bit a 1 simbolo
 def mapeo(x):
-    y=np.zeros(len(x))
-    for i in range(len(x)):
-        y[i]=x[i]
-        if x[i]==0:
-            y[i]= -1
+    y=2*x-1
     return y
 
 #Recibe señal 
