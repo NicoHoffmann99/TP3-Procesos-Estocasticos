@@ -55,33 +55,27 @@ def canal_discreto(x,h):
     g=np.convolve(x,h,'same')
     y=g + np.random.normal(0,0.002,len(g))
     return y
-'''
-#                                                  d(n)
+
+
+#                                                  x(n)
 #                                                   |
-#             |-------------|                       |
+#              -------------                        |
 #             |             |                       +
-#   y(n) ---> |      w      | ----> y_moño(n) -->  -   ---> e(n)
+#   y(n) ---> |      w      | ----> x_moño(n) --> -    ---> e(n)
 #             |             |
-#             |-------------|
-'''
-'''
-def algoritmo_LMS(y,d,mu,M):
-    #Semilla w del algoritmo
-    w=np.zeros(M)
-    e=np.zeros(len(d))
-    y_moño=np.zeros(len(d))
+#              -------------
+def algoritmo_LMS(y,x,mu,M):
 
-    for i in range(M, len(y)):
+    w=np.zeros((M,len(x)))
+    e=np.zeros(len(x))
+
+    for i in range(len(y)-M):
         #Extraigo porción de y para calcular y_moño
-        y_porción=y[i:(i-M+1)]
-        y_moño[i]=np.dot(w,y_por)
-
-        e[i] = d[i] -y_moño[i]
-
-        w = w + mu*e[i]*y_porción
+        y_por=y[i+M:i:-1]
+        e[i] = x[i] - np.dot(w[:,i],y_por)
+        w[:,i+1] = w[:,i] + mu*e[i]*y_por
     
-    return w, e, y_moño
-'''
+    return w, e
     
 
 def ej_1():
@@ -90,6 +84,7 @@ def ej_1():
     x=mapeo(b)
     plt.stem(x)
     plt.xlim(0,100)
+    plt.grid()
     plt.show()
 
     #b)
@@ -98,6 +93,7 @@ def ej_1():
     N=np.linspace(0,1000,len(x))
     plt.stem(y)
     plt.xlim(0,100)
+    plt.grid()
     plt.show()
 
     #c)
@@ -109,8 +105,11 @@ def ej_1():
 
     S_x=welch_metod_PSD(x,50,'hamming',80)
     S_y=welch_metod_PSD(y,50,'hamming',80)
-    plt.plot(N,S_x)
-    plt.plot(N,S_y)
+    w=np.linspace(0,2*np.pi,len(S_x))
+    plt.plot(w,S_x)
+    plt.plot(w,S_y)
+    #plt.xlim(0,np.pi)
+    plt.grid()
     plt.show()
 
 
