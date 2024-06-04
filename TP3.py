@@ -73,7 +73,7 @@ def algoritmo_LMS(y,x,mu,M):
         #Extraigo porción de y para calcular y_moño
         y_por=y[i+M:i:-1]
         e[i] = x[i] - np.dot(w[:,i],y_por)
-        w[:,i+1] = w[:,i] + mu*e[i]*y_por
+        w[:,i] = w[:,i-1] + mu*e[i]*y_por
     
     return w, e
     
@@ -108,9 +108,8 @@ def ej_1():
     w=np.linspace(0,2*np.pi,len(S_x))
     plt.plot(w,S_x)
     plt.plot(w,S_y)
-    #plt.xlim(0,np.pi)
+    plt.xlim(0,np.pi)
     plt.grid()
     plt.show()
-
 
 ej_1()
