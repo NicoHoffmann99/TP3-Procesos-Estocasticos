@@ -52,10 +52,19 @@ def mapeo(x):
 
 #Recibe señal 
 def canal_discreto(x,h):
-    g=np.convolve(x,h,'same')
-    y=g + np.random.normal(0,0.002,len(g))
+    N=len(h)
+    g=np.zeros(len(x))
+    
+    for i in range(len(x)-N):
+        x_por=x[i+N:i:-1]
+        g[i]=np.dot(h,x_por)
+    y=g + np.random.normal(0,0.02,len(g))
     return y
 
+def canal_discreto_2(x,h):
+    g=signal.lfilter(h,[1],x)
+    y=g + np.random.normal(0,0.02,len(g))
+    return y
 
 #                                                  x(n)
 #                                                   |
@@ -68,14 +77,17 @@ def algoritmo_LMS(y,x,mu,M):
 
     w=np.zeros((M,len(x)))
     e=np.zeros(len(x))
+    x_moño=np.zeros(len(x))
 
     for i in range(len(y)-M):
         #Extraigo porción de y para calcular y_moño
-        y_por=y[i+M:i:-1]
-        e[i] = x[i] - np.dot(w[:,i],y_por)
+        y_por = y[i+M:i:-1]
+
+        x_moño[i] = np.dot(np.transpose(w[:,i]),y_por)
+        e[i] = x[i+M] - x_moño[i]
         w[:,i+1] = w[:,i] + mu*e[i]*y_por
     
-    return w, e
+    return w, e, x_moño
     
 
 def ej_1():
@@ -99,8 +111,10 @@ def ej_1():
     #c)
     R_x=auto_corr(x)
     R_y=auto_corr(y)
-    plt.plot(N,R_x)
-    plt.plot(N,R_y)
+    plt.xlim(0,100)
+    plt.plot(N,R_x,label='$R_x$')
+    plt.plot(N,R_y,label='$R_y$')
+    plt.legend()
     plt.show()
 
     S_x=welch_metod_PSD(x,50,'hamming',80)
@@ -109,11 +123,16 @@ def ej_1():
     plt.plot(w,10*np.log10(S_x),label='$S_x$ - Welch')
     plt.plot(w,10*np.log10(S_y),label='$S_y$ - Welch')
     plt.xlabel('w [rad/s]')
-    plt.ylabel('PSD [db]')
+    plt.ylabel('PSD [dB]')
     plt.title('PSD')
     plt.legend()
     plt.xlim(0,np.pi)
     plt.grid()
+    plt.show()
+
+    w,e,y_1=algoritmo_LMS(y,x,0.05,8) 
+    plt.stem(y_1)
+    plt.xlim(0,100)
     plt.show()
 
 ej_1()
