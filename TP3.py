@@ -132,7 +132,7 @@ def ej_1():
 
     w,e,y_1=algoritmo_LMS(y,x,0.05,8) 
     plt.stem(y_1)
-    plt.xlim(0,100)
+    #plt.xlim(0,100)
     plt.show()
 
 ej_1()
