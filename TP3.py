@@ -52,47 +52,39 @@ def mapeo(x):
 
 #Recibe señal 
 def canal_discreto(x,h):
-    N=len(h)
-    g=np.zeros(len(x))
-    
-    for i in range(len(x)-N):
-        x_por=x[i+N:i:-1]
-        g[i]=np.dot(h,x_por)
-    y=g + np.random.normal(0,0.02,len(g))
-    return y
-
-def canal_discreto_2(x,h):
     g=signal.lfilter(h,[1],x)
-    y=g + np.random.normal(0,0.02,len(g))
+    y=g + np.random.normal(0,0.002,len(g))
     return y
 
-#                                                  x(n)
+def retardo(x,D):
+    ret = np.zeros(D+1)
+    ret[D] = 1
+    return signal.lfilter(ret,[1],x)
+
+
+def algoritmo_LMS(y,d,paso,M):
+
+#                                                  d(n)
 #                                                   |
-#              -------------                        |
+#             +-------------+                       |
 #             |             |                       +
-#   y(n) ---> |      w      | ----> x_moño(n) --> -    ---> e(n)
+#   y(n) ---> |      w      | ----> d_moño(n) --> -    ---> e(n)
 #             |             |
-#              -------------
-def algoritmo_LMS(y,x,mu,M):
+#             +-------------+ 
 
-    w=np.zeros((M,len(x)))
-    e=np.zeros(len(x))
-    x_moño=np.zeros(len(x))
-
-    for i in range(len(y)-M):
-        #Extraigo porción de y para calcular y_moño
-        y_por = y[i+M:i:-1]
-
-        x_moño[i] = np.dot(np.transpose(w[:,i]),y_por)
-        e[i] = x[i+M] - x_moño[i]
-        w[:,i+1] = w[:,i] + mu*e[i]*y_por
-    
-    return w, e, x_moño
-    
+    d_moño=np.zeros(len(y))
+    error=np.zeros(len(y))
+    w=np.zeros((M,len(y)))
+    for i in range(M, len(d)-M):
+        ventana = y[i:i-M:-1]
+        d_moño[i-M] = np.dot(w[:,i],ventana)
+        error[i-M] = d[i] - d_moño[i-M]
+        w[:,i+1] = w[:,i] + paso*error[i-M]*ventana
+    return w, error, d_moño
 
 def ej_1():
     #a)
-    b=np.random.binomial(1,0.5,1000)
+    b=np.random.binomial(1,0.5,2000)
     x=mapeo(b)
     plt.stem(x)
     plt.xlim(0,100)
@@ -102,7 +94,7 @@ def ej_1():
     #b)
     h=[0.5,1,0.2,0.1,0.05,0.01]
     y=canal_discreto(x,h)
-    N=np.linspace(0,1000,len(x))
+    N=np.linspace(0,2000,len(x))
     plt.stem(y)
     plt.xlim(0,100)
     plt.grid()
@@ -130,9 +122,39 @@ def ej_1():
     plt.grid()
     plt.show()
 
-    w,e,y_1=algoritmo_LMS(y,x,0.05,8) 
-    plt.stem(y_1)
-    #plt.xlim(0,100)
-    plt.show()
+def ej_2():
+    D=9
+    realizaciones=500
+    mu=0.05
+    orden=8
+    N=1000
+    N_i=np.linspace(0,N,N)
+    p=0.5
 
-ej_1()
+    h=[0.5,1,0.2,0.1,0.05,0.01]
+    labels_1 = ['D = 1','D = 2','D = 3','D = 4','D = 5','D = 6','D = 7','D = 8','D = 9']
+    d=mapeo(np.random.binomial(1,p,N))
+    y=canal_discreto(d,h)
+    w, e, d_moño = algoritmo_LMS(y,retardo(d,15),mu,orden)
+    plt.stem(d_moño)
+    plt.xlim(300,400)
+    plt.show()
+    '''
+    for i in range(1,D+1):
+        J=np.zeros(N)
+        for k in range(realizaciones):
+            d=mapeo(np.random.binomial(1,p,N))
+            y=canal_discreto(d,h)
+            w, e, d_moño = algoritmo_LMS(y,retardo(d,i),mu,orden)
+            J = J + np.power(np.abs(e),2)
+        J = J/realizaciones
+        plt.plot(N_i,J,label=labels_1[i-1])
+    plt.legend()
+    plt.show()
+    '''
+    
+        
+
+
+#ej_1()
+ej_2()
