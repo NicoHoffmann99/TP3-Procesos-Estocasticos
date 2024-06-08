@@ -133,13 +133,8 @@ def ej_2():
 
     h=[0.5,1,0.2,0.1,0.05,0.01]
     labels_1 = ['D = 1','D = 2','D = 3','D = 4','D = 5','D = 6','D = 7','D = 8','D = 9']
-    d=mapeo(np.random.binomial(1,p,N))
-    y=canal_discreto(d,h)
-    w, e, d_moño = algoritmo_LMS(y,retardo(d,15),mu,orden)
-    plt.stem(d_moño)
-    plt.xlim(300,400)
-    plt.show()
-    '''
+  
+    
     for i in range(1,D+1):
         J=np.zeros(N)
         for k in range(realizaciones):
@@ -151,7 +146,7 @@ def ej_2():
         plt.plot(N_i,J,label=labels_1[i-1])
     plt.legend()
     plt.show()
-    '''
+    
     
         
 
