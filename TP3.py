@@ -123,6 +123,7 @@ def ej_1():
     plt.show()
 
 def ej_2():
+    #Parametros
     D=9
     realizaciones=500
     mu=0.05
@@ -130,11 +131,12 @@ def ej_2():
     N=1000
     N_i=np.linspace(0,N,N)
     p=0.5
-
     h=[0.5,1,0.2,0.1,0.05,0.01]
     labels_1 = ['D = 1','D = 2','D = 3','D = 4','D = 5','D = 6','D = 7','D = 8','D = 9']
-  
     
+    Jlim_inf=300
+    Jlim_sup=900
+    J_infinito=np.zeros(D)
     for i in range(1,D+1):
         J=np.zeros(N)
         for k in range(realizaciones):
@@ -143,8 +145,32 @@ def ej_2():
             w, e, d_moño = algoritmo_LMS(y,retardo(d,i),mu,orden)
             J = J + np.power(np.abs(e),2)
         J = J/realizaciones
+        J_infinito[i-1]=np.sum(J[Jlim_inf:Jlim_sup])/(Jlim_sup-Jlim_inf)
         plt.plot(N_i,J,label=labels_1[i-1])
     plt.legend()
+    plt.show()
+
+    n=np.linspace(0,D,len(J_infinito))
+    plt.scatter(n,J_infinito,marker='x')
+    plt.xticks(n,labels_1)
+    plt.yscale('log')
+    plt.grid()
+    plt.show()
+
+    D_min=np.argmin(J_infinito)+1
+    d=mapeo(np.random.binomial(1,p,N))
+    y=canal_discreto(d,h)
+    d_ret=retardo(d,D_min)
+    w, e, z=algoritmo_LMS(y,d_ret,mu,orden)
+    plt.stem(retardo(z,orden),'r')
+    plt.stem(d_ret,'g')
+    plt.show()
+
+    conv_w_h=np.convolve(w[:,980],h)
+    plt.stem(conv_w_h)
+    plt.show()
+
+    plt.plot(np.linspace(0,2*np.pi,N),fft(conv_w_h,N))
     plt.show()
     
     
