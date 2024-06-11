@@ -123,10 +123,16 @@ def ej_1():
     S_x=welch_metod_PSD(x,50,'hamming',80)
     S_x_teo=fft(R_x_teo,len(S_x))
     S_y=welch_metod_PSD(y,50,'hamming',80)
+    '''
+    w, S_y_1=signal.freqz(h,[1],len(x))
+    S_y_2=fft([0.002],len(S_y_1))
+    S_y_teo=np.power(np.abs(S_y_1),2)+S_y_2
+    '''
     w=np.linspace(0,2*np.pi,len(S_x))
     plt.plot(w,10*np.log10(S_x),label='$S_x$ - Welch')
     plt.plot(w,10*np.log10(S_y),label='$S_y$ - Welch')
     plt.plot(w,10*np.log10(S_x_teo),label='$S_x$ - Teórica')
+    #plt.plot(w,10*np.log10(S_y_teo),label='$S_y$ - Teórica')
     plt.xlabel('w [rad/s]')
     plt.ylabel('PSD [dB]')
     plt.title('PSD')
@@ -206,4 +212,4 @@ def ej_2():
 
 
 ej_1()
-ej_2()
+#ej_2()
