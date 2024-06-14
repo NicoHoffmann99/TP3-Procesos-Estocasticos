@@ -84,7 +84,7 @@ def algoritmo_LMS(y,d,paso,M):
 
 def ej_1():
     #a)
-    b=np.random.binomial(1,0.5,2000)
+    b=np.random.binomial(1,0.5,1000)
     x=mapeo(b)
     plt.stem(x)
     plt.xlim(0,100)
@@ -97,7 +97,7 @@ def ej_1():
     #b)
     h=[0.5,1,0.2,0.1,0.05,0.01]
     y=canal_discreto(x,h)
-    N=np.linspace(0,2000,len(x))
+    N=np.linspace(0,1000,len(x))
     plt.stem(y)
     plt.xlim(0,100)
     plt.title('Salida del canal discreto y(n)')
@@ -120,19 +120,19 @@ def ej_1():
     plt.legend()
     plt.show()
     
-    S_x=welch_metod_PSD(x,50,'hamming',80)
+    S_x=welch_metod_PSD(x,20,'hamming',40)
     S_x_teo=fft(R_x_teo,len(S_x))
-    S_y=welch_metod_PSD(y,50,'hamming',80)
-    '''
-    w, S_y_1=signal.freqz(h,[1],len(x))
+    S_y=welch_metod_PSD(y,20,'hamming',40)
+    
+    w_prim, S_y_1=signal.freqz(h,[1],len(x))
     S_y_2=fft([0.002],len(S_y_1))
-    S_y_teo=np.power(np.abs(S_y_1),2)+S_y_2
-    '''
+    S_y_teo=np.power(np.abs(S_y_1),2)*S_x_teo+S_y_2
+    
     w=np.linspace(0,2*np.pi,len(S_x))
     plt.plot(w,10*np.log10(S_x),label='$S_x$ - Welch')
     plt.plot(w,10*np.log10(S_y),label='$S_y$ - Welch')
     plt.plot(w,10*np.log10(S_x_teo),label='$S_x$ - Teórica')
-    #plt.plot(w,10*np.log10(S_y_teo),label='$S_y$ - Teórica')
+    plt.plot(w_prim,10*np.log10(S_y_teo),label='$S_y$ - Teórica')
     plt.xlabel('w [rad/s]')
     plt.ylabel('PSD [dB]')
     plt.title('PSD')
