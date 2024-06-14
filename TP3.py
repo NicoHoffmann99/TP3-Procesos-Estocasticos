@@ -194,7 +194,7 @@ def ej_2():
 
     conv_w_h=np.convolve(w[:,980],h)
     plt.stem(conv_w_h)
-    plt.ylabel('h$\circledast$w')
+    plt.ylabel('h(n)$\circledast$w(n)')
     plt.xlabel('n')
     plt.title('Respuesta impulsiva')
     plt.grid()
@@ -202,7 +202,7 @@ def ej_2():
 
     plt.plot(np.linspace(0,2*np.pi,N),fft(conv_w_h,N))
     plt.xlabel('w [rad/s]')
-    plt.ylabel('$\mathcal{F}$(h$\circledast$w)')
+    plt.ylabel('$\mathcal{F}$(h(n)$\circledast$w(n))')
     plt.title('Respuesta en frecuencia')
     plt.grid()
     plt.show()
@@ -211,5 +211,5 @@ def ej_2():
         
 
 
-ej_1()
-#ej_2()
+#ej_1()
+ej_2()
