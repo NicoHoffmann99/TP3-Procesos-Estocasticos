@@ -52,9 +52,9 @@ def mapeo(x):
     return y
 
 #Recibe señal de entrada, devuelve salida del canal discreto(convolucion con rta impulsiva y ruido)
-def canal_discreto(x,h,sigma):
+def canal_discreto(x,h,var):
     g=signal.lfilter(h,[1],x)
-    v=np.random.normal(0,sigma,len(g))
+    v=np.random.normal(0,np.sqrt(var),len(g))
     y=g + v
     return y
 
@@ -109,21 +109,21 @@ def obtener_SER(x,x_clasificado):
     SER_coef=cant_errores/len(x)
     return SER_coef
 
-def funcion_Q(x,sigma):
-    Q=0.5-0.5*special.erf((x/np.sqrt(sigma))/np.sqrt(2))
+def funcion_Q(x,var):
+    Q=0.5-0.5*special.erf((x/np.sqrt(var))/np.sqrt(2))
     return Q
 
 def pdf_normal(mu,var,long):
     sigma = np.sqrt(var)
-    n = np.linspace(mu-2.5*sigma, mu+2.5*sigma, long)
-    x = stats.norm.pdf(n,mu,var)
+    n = np.linspace(mu-4*sigma, mu+4*sigma, long)
+    x = stats.norm.pdf(n,mu,sigma)
     return n, x
 
 def ej_1():
     h=[0.5,1,0.2,0.1,0.05,0.01]
     p=0.5
     N=1000
-    sigma=0.002
+    var=0.002
     
     #a)
     b=np.random.binomial(1,p,N)
@@ -138,7 +138,7 @@ def ej_1():
 
     #b)
    
-    y=canal_discreto(x,h,sigma)
+    y=canal_discreto(x,h,var)
     N=np.linspace(0,1000,len(x))
     plt.stem(y)
     plt.xlim(0,100)
@@ -192,7 +192,7 @@ def ej_2():
     N=1000
     N_i=np.linspace(0,N,N)
     p=0.5
-    sigma=0.002
+    var=0.002
     h=[0.5,1,0.2,0.1,0.05,0.01]
     labels_1 = ['D = 1','D = 2','D = 3','D = 4','D = 5','D = 6','D = 7','D = 8','D = 9']
     
@@ -203,7 +203,7 @@ def ej_2():
         J=np.zeros(N)
         for k in range(realizaciones):
             d=mapeo(np.random.binomial(1,p,N))
-            y=canal_discreto(d,h,sigma)
+            y=canal_discreto(d,h,var)
             w, e, d_moño = algoritmo_LMS(y,retardo(d,i),mu,orden)
             J = J + np.power(np.abs(e),2)
         J = J/realizaciones
@@ -226,18 +226,19 @@ def ej_2():
 
     D_min=np.argmin(J_infinito)+1
     d=mapeo(np.random.binomial(1,p,N))
-    y=canal_discreto(d,h,sigma)
+    y=canal_discreto(d,h,var)
     d_ret=retardo(d,D_min)
     w, e, z=algoritmo_LMS(y,d_ret,mu,orden)
-    plt.title('Señal original desplazada x($n-D_{opt}$) vs Secuencia equializada z(n)')
-    plt.stem(retardo(z,orden),'r',label='z(n)')
+    #Tomo coeficientes una vez en estado estacionario
+    w_a=w[:,980]
+
+    plt.title('Señal original desplazada x($n-D_{opt}$) vs Secuencia equializada u(n)')
+    plt.stem(signal.lfilter(w_a,[1],y),'r',label='u(n)')
     plt.stem(d_ret,'g',label='x($n-D_{opt}$)')
     plt.legend()
     plt.show()
 
 
-
-    w_a=w[:,980]
     plt.stem(w_a,'r',label='w(n)')
     plt.stem(h,'g',label='h(n)')
     plt.grid()
@@ -248,9 +249,9 @@ def ej_2():
 
     conv_w_h=np.convolve(w_a,h)
     plt.stem(conv_w_h)
-    plt.ylabel('h(n)$\circledast$w(n)')
+    plt.ylabel(r'h(n)$\ast$w(n)')
     plt.xlabel('n')
-    plt.title('Respuesta impulsiva')
+    plt.title('Convolución entre respuestas impulsivas h(n) y w(n)')
     plt.grid()
     plt.legend()
     plt.show()
@@ -264,21 +265,30 @@ def ej_2():
     plt.legend()
     plt.show()
 
-    plt.plot(np.linspace(0,2*np.pi,N),fft(w_a,N)*fft(h,N))
+    plt.plot(np.linspace(0,2*np.pi,N),np.abs(fft(w_a,N)*fft(h,N)))
+    plt.ylim(0,1.1)
     plt.xlabel('w [rad/s]')
-    plt.ylabel('$\mathcal{F}$(h(n)$\circledast$w(n))')
-    plt.title('Respuesta en frecuencia')
+    plt.ylabel(r'|$\mathcal{F}$(h(n)$\ast$w(n))|')
+    plt.title('Módulo de la respuesta en frecuencia')
     plt.grid()
     plt.xlim(0,np.pi)
-    plt.legend()
     plt.show()
+
+    plt.plot(np.linspace(0,2*np.pi,N),np.angle(fft(w_a,N)*fft(h,N)))
+    plt.xlabel('w [rad/s]')
+    plt.ylabel(r'$\angle$$\mathcal{F}$(h(n)$\ast$w(n))')
+    plt.title('Fase de la respuesta en frecuencia')
+    plt.grid()
+    plt.xlim(0,np.pi)
+    plt.show()
+
     
     
 def ej_3():
     #a)
     #Parámetros
     
-    sigmas_1=[0.1,0.2,0.3]
+    vars_1=[0.1,0.2,0.3]
     h=[10*0.1]
     N_1=10000     
     p=0.5
@@ -286,18 +296,18 @@ def ej_3():
     colors=['r','y','g']
     amplitud_1=1
     titulos_a=['Histograma para señal con RGB de $\sigma^2$ = 0.1','Histograma para señal con RGB de $\sigma^2$ = 0.2','Histograma para señal con RGB de $\sigma^2$ = 0.3']
-    for i in range(len(sigmas_1)):
+    for i in range(len(vars_1)):
         x=mapeo(np.random.binomial(1,p,N_1))
-        u=canal_discreto(x,h,sigmas_1[i])
+        u=canal_discreto(x,h,vars_1[i])
         umbral=umbral_optimo(amplitud_1,-amplitud_1)
 
         plt.axvline(umbral,0,1,linestyle='--',label=f'Umbral óptimo = {umbral}')
         plt.hist(u,bins=100,label=labels_a[i],color=colors[i])
         bin_ancho = (u.max() - u.min()) / 100
 
-        n, pdf1 = pdf_normal(amplitud_1,sigmas_1[i],len(x))
+        n, pdf1 = pdf_normal(amplitud_1,vars_1[i],len(x))
         plt.plot(n, 0.5*pdf1 * N_1 * bin_ancho,'k',label='$f(u|H_1)$')
-        n, pdf2 = pdf_normal(-amplitud_1,sigmas_1[i],len(x))
+        n, pdf2 = pdf_normal(-amplitud_1,vars_1[i],len(x))
         plt.plot(n, 0.5*pdf2 * N_1 * bin_ancho,'b',label='$f(u|H_0)$')
         plt.xlabel('Amplitud del símbolo + ruido')
         plt.title(titulos_a[i])
@@ -306,14 +316,14 @@ def ej_3():
         plt.show()
     
     #b)
-    sigma_2=0.5
+    vars_2=0.5
     amplitudes=[1,3]
     N_2=100000
     labels_b=['$|x|$ = 1' ,'$|x|$ = 3']
     titles_b=['Histograma para x(n) de amplitud 1','Histograma para x(n) de amplitud 3']
     for i in range(len(amplitudes)):
         x=amplitudes[i]*mapeo(np.random.binomial(1,p,N_2))
-        u=canal_discreto(x,h,sigma_2)
+        u=canal_discreto(x,h,vars_2)
         umbral=umbral_optimo(amplitudes[i],-amplitudes[i])
         print('UMBRAL: ',umbral)
 
@@ -321,15 +331,15 @@ def ej_3():
         SER_coef=obtener_SER(x,u_clasificada)
         print('Coeficiente SER: ', SER_coef)
 
-        Pe=funcion_Q(amplitudes[i],sigma_2)
+        Pe=funcion_Q(amplitudes[i],vars_2)
         print('Probabilidad de error: ',Pe)
 
         plt.hist(u,bins=100,label=labels_b[i],color='r')
         bin_ancho = (u.max() - u.min()) / 100
 
-        n, pdf1 = pdf_normal(amplitudes[i],sigma_2,len(x))
+        n, pdf1 = pdf_normal(amplitudes[i],vars_2,len(x))
         plt.plot(n, 0.5*pdf1 * N_2 * bin_ancho,'k',label='$f(u|H_1)$')
-        n, pdf2 = pdf_normal(-amplitudes[i],sigma_2,len(x))
+        n, pdf2 = pdf_normal(-amplitudes[i],vars_2,len(x))
         plt.plot(n, 0.5*pdf2 * N_2 * bin_ancho,'b',label='$f(u|H_0)$')
         plt.axvline(umbral,0,1,linestyle='--',label=f'Umbral óptimo = {umbral}',color='k')
 
@@ -342,19 +352,19 @@ def ej_3():
     #c)
     N_3=10000
     amplitud=1
-    sigmas_3=np.arange(5,0.0,-0.2)
+    vars_3=np.arange(5,0.0,-0.2)
 
-    SER_array=np.zeros(len(sigmas_3))
-    Pe=np.zeros(len(sigmas_3))
-    SNR_array=np.zeros(len(sigmas_3))
-    for i in range(len(sigmas_3)):
+    SER_array=np.zeros(len(vars_3))
+    Pe=np.zeros(len(vars_3))
+    SNR_array=np.zeros(len(vars_3))
+    for i in range(len(vars_3)):
         x=amplitud*mapeo(np.random.binomial(1,p,N_3))
-        u=canal_discreto(x,h,sigmas_3[i])
+        u=canal_discreto(x,h,vars_3[i])
         umbral=umbral_optimo(amplitud,-amplitud)
         u_clasificada=clasificador_ML(u,umbral,amplitud)
         SER_array[i]=obtener_SER(x,u_clasificada) 
-        Pe[i]=funcion_Q(amplitud,sigmas_3[i])
-        SNR_array[i]=potencia(x)/potencia(np.random.normal(amplitud,sigmas_3[i],len(x)))
+        Pe[i]=funcion_Q(amplitud,vars_3[i])
+        SNR_array[i]=potencia(x)/potencia(np.random.normal(0,np.sqrt(vars_3[i]),len(x)))
 
     plt.plot(SNR_array,Pe,label='$P_e$')
     plt.plot(SNR_array,SER_array,label='$SER^3$')
